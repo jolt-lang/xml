@@ -1,0 +1,13 @@
+{:paths ["src"]
+
+ ;; libxml2 backs the javax.xml.stream pull parser. Declared :jolt/native so jolt
+ ;; loads it before this namespace, where the foreign-fn bindings resolve at load.
+ ;; Present on macOS (dyld shared cache) and ubiquitous on Linux.
+ :jolt/native [{:name "xml2"
+                :darwin ["libxml2.2.dylib" "/usr/lib/libxml2.2.dylib"]
+                :linux  ["libxml2.so.2" "libxml2.so"]}]
+
+ :aliases {:test {:extra-paths ["test"]
+                  :main-opts ["-m" "jolt.xml-test"]}}
+
+ :tasks {test "joltc -M:test"}}

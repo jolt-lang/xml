@@ -1,0 +1,5 @@
+.beads/
+.dirge/
+target/
+*.so
+*.boot

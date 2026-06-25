@@ -59,6 +59,10 @@
 (defn- tget [t k] (jolt.host/ref-get t k))
 (defn- tput! [t k v] (jolt.host/ref-put! t k v))
 
+;; Free the libxml2 reader and the buffer it references. Called when the document
+;; is fully read (next returns END_DOCUMENT) or .close is invoked. Like a JVM
+;; XMLStreamReader, a caller that abandons the reader before draining it must call
+;; .close, or the buffer is held until the process exits (jolt has no finalizers).
 (defn- free-reader! [rdr]
   (when-not (tget rdr :done)
     (xml-free-reader (tget rdr :reader))

@@ -1,6 +1,7 @@
 (ns jolt.xml-test
   (:require [clojure.test :refer [deftest is run-tests]]
-            [jolt.xml])
+            [jolt.xml]
+            [clojure.xml :as cx])
   (:import (javax.xml.stream XMLInputFactory XMLStreamConstants)
            (java.io StringReader)))
 
@@ -45,6 +46,21 @@
   (is (= {:tag :r :attrs {} :content [{:tag :x :attrs {} :content ["1"]}
                                       {:tag :y :attrs {} :content ["2"]}]}
          (parse "<r>\n  <x>1</x>\n  <y>2</y>\n</r>"))))
+
+
+(deftest clojure-xml-parse-string
+  (is (= {:tag :a :attrs {:x "1"} :content [{:tag :b :attrs nil :content ["hi"]}]}
+         (cx/parse "<a x=\"1\"><b>hi</b></a>"))))
+
+(deftest clojure-xml-strips-whitespace
+  (is (= {:tag :r :attrs nil :content [{:tag :x :attrs nil :content ["1"]}
+                                       {:tag :y :attrs nil :content ["2"]}]}
+         (cx/parse "<r>\n  <x>1</x>\n  <y>2</y>\n</r>"))))
+
+(deftest clojure-xml-parse-input-source
+  ;; the source clojure.data.zip's tests use: an InputSource over a StringReader
+  (is (= {:tag :a :attrs nil :content ["hi"]}
+         (cx/parse (org.xml.sax.InputSource. (java.io.StringReader. "<a>hi</a>"))))))
 
 (defn -main [& _]
   (let [{:keys [fail error]} (run-tests 'jolt.xml-test)]

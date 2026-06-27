@@ -142,6 +142,17 @@
                                  (xml-move-to-attr-no rd i)
                                  (let [v (or (ffi-str (xml-attr-ns rd)) "")] (xml-move-to-element rd) v)))
      "close" (fn [self] (free-reader! self) nil)})
+
+  ;; org.xml.sax.InputSource — SAX callers (clojure.xml/parse) wrap a Reader or
+  ;; InputStream in one. We only need to recover the wrapped stream.
+  (doseq [nm ["InputSource" "org.xml.sax.InputSource"]]
+    (__register-class-ctor! nm (fn [& args]
+                                 (doto (tt :jolt.xml/input-source)
+                                   (tput! :stream (first args))))))
+  (__register-class-methods! :jolt.xml/input-source
+    {"getCharacterStream" (fn [self] (tget self :stream))
+     "setCharacterStream" (fn [self r] (tput! self :stream r) nil)
+     "getByteStream"      (fn [self] (tget self :stream))})
   nil)
 
 (install!)

@@ -55,3 +55,19 @@ It ships with macOS (the dyld shared cache) and is ubiquitous on Linux
 ```
 joltc -M:test   # run the conformance tests
 ```
+
+## clojure.xml
+
+Requiring `jolt.xml` also makes `clojure.xml/parse` available (it ships in this
+library since it has no `clojure.xml` of its own):
+
+```clojure
+(require 'clojure.xml)
+(clojure.xml/parse "<a x=\"1\"><b>hi</b></a>")
+;; => {:tag :a, :attrs {:x "1"}, :content [{:tag :b, :attrs nil, :content ["hi"]}]}
+```
+
+It accepts a String, a Reader, or an `org.xml.sax.InputSource`, and returns the
+standard `{:tag :attrs :content}` element tree — whitespace-only text between
+elements dropped, like the JVM. That's enough for zipper code such as
+[clojure.data.zip](https://github.com/clojure/data.zip).

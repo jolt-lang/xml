@@ -71,3 +71,36 @@ It accepts a String, a Reader, or an `org.xml.sax.InputSource`, and returns the
 standard `{:tag :attrs :content}` element tree — whitespace-only text between
 elements dropped, like the JVM. That's enough for zipper code such as
 [clojure.data.zip](https://github.com/clojure/data.zip).
+
+## clojure.data.xml
+
+An XML generation API matching [data.xml 0.0.8](https://github.com/clojure/data.xml):
+Element and CData records plus `emit-str` serialization. Pure Clojure string
+building — no libxml2/FFI needed, so `jolt.xml` is not required.
+
+```clojure
+(require '[clojure.data.xml :refer [element cdata emit-str]])
+
+(emit-str (element :rss {:version "2.0"}
+                   (element :channel nil
+                            (element :title nil "Hi"))))
+;; => <?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Hi</title></channel></rss>
+
+(emit-str (element :a nil (cdata "<b>hi</b>")))
+;; => <?xml version="1.0" encoding="UTF-8"?><a><![CDATA[<b>hi</b>]]></a>
+
+(pr-str (element :a {} (list "foo")))
+;; => #clojure.data.xml.Element{:tag :a, :attrs {}, :content (("foo"))}
+```
+
+- `(element tag attrs & content)` — Element record. `tag` is a keyword or string;
+  `attrs` is a map (nil becomes `{}`); content items are stored as the rest-args
+  list and flattened during serialization.
+- `(cdata s)` — CData record for unescaped character data.
+- `(emit-str element)` — serializes to the XML string with prolog, no newlines.
+  Empty elements render as `<tag></tag>` (not self-closing). Text content escapes
+  `&`, `<`, `>`. Attribute values escape `&`, `<`, `"`.
+
+```sh
+joltc -M:test-data-xml   # run the data.xml conformance tests
+```

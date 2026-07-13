@@ -7,7 +7,9 @@
                 :darwin ["libxml2.2.dylib" "/usr/lib/libxml2.2.dylib"]
                 :linux  ["libxml2.so.2" "libxml2.so"]}]
 
- :aliases {:test {:extra-paths ["test"]
-                  :main-opts ["-m" "jolt.xml-test"]}}
+  :aliases {:test {:extra-paths ["test"]
+                   :main-opts ["-m" "jolt.xml-test"]}
+             :test-data-xml {:extra-paths ["test"]
+                            :main-opts ["-m" "clojure.data.xml-test"]}}
 
  :tasks {test "joltc -M:test"}}

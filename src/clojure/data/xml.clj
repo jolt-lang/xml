@@ -13,10 +13,11 @@
 
 (defn element
   "Returns an Element with the given tag, attribute map (nil becomes {}), and
-  content. Content items are stored as the rest-args list; emit-str flattens
-  nested seqs during rendering."
+  content. Nil content items are dropped (data.xml behavior); remaining items —
+  strings, numbers, nested Elements/CData, and seqs — are kept as-is and
+  emit-str flattens nested seqs during rendering."
   [tag attrs & content]
-  (Element. tag (or attrs {}) content))
+  (Element. tag (or attrs {}) (remove nil? content)))
 
 ;; --- emit helpers -------------------------------------------------------
 

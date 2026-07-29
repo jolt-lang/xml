@@ -12,4 +12,4 @@
              :test-data-xml {:extra-paths ["test"]
                             :main-opts ["-m" "clojure.data.xml-test"]}}
 
- :tasks {test "joltc -M:test"}}
+ :tasks {test "jolt -M:test"}}

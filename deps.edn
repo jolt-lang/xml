@@ -1,5 +1,22 @@
 {:paths ["src"]
 
+ ;; The JDK classes jolt.xml installs (RFC 0014). Jolt resolves the class
+ ;; references in a DEPENDENCY namespace against this table BEFORE that
+ ;; namespace compiles, which is earlier than any require of ours can run. A
+ ;; library compiled from ~/.m2 that imports javax.xml.stream -- cognitect
+ ;; aws-api's cognitect.aws.util.xml does -- therefore fails with "No
+ ;; dependency provides javax.xml.stream.XMLStreamConstants" unless the table
+ ;; is declared here, however early install! runs.
+ ;;
+ ;; Fully-qualified only; jolt derives the simple spelling. These are exactly
+ ;; the classes install! registers. javax.xml.stream.XMLStreamReader is
+ ;; deliberately absent: the reader is a tagged table reached through
+ ;; __register-class-methods!, not a registered class, so claiming it would
+ ;; claim something that does not exist.
+ :jolt/provides {jolt.xml ["javax.xml.stream.XMLInputFactory"
+                           "javax.xml.stream.XMLStreamConstants"
+                           "org.xml.sax.InputSource"]}
+
  ;; libxml2 backs the javax.xml.stream pull parser. Declared :jolt/native so jolt
  ;; loads it before this namespace, where the foreign-fn bindings resolve at load.
  ;; Present on macOS (dyld shared cache) and ubiquitous on Linux.

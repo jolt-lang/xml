@@ -19,10 +19,14 @@
 
  ;; libxml2 backs the javax.xml.stream pull parser. Declared :jolt/native so jolt
  ;; loads it before this namespace, where the foreign-fn bindings resolve at load.
- ;; Present on macOS (dyld shared cache) and ubiquitous on Linux.
+ ;; Present on macOS (dyld shared cache) and ubiquitous on Linux. Windows has no
+ ;; system copy, and jolt reads only the running platform's key, so the names
+ ;; below are MSYS2's current and older builds and the official one; the DLL has
+ ;; to be on PATH or next to the program.
  :jolt/native [{:name "xml2"
-                :darwin ["libxml2.2.dylib" "/usr/lib/libxml2.2.dylib"]
-                :linux  ["libxml2.so.2" "libxml2.so"]}]
+                :darwin  ["libxml2.2.dylib" "/usr/lib/libxml2.2.dylib"]
+                :linux   ["libxml2.so.2" "libxml2.so"]
+                :windows ["libxml2-16.dll" "libxml2-2.dll" "libxml2.dll"]}]
 
   :aliases {:test {:extra-paths ["test"]
                    :main-opts ["-m" "jolt.xml-test"]}

@@ -62,6 +62,21 @@
   (is (= {:tag :a :attrs nil :content ["hi"]}
          (cx/parse (org.xml.sax.InputSource. (java.io.StringReader. "<a>hi</a>"))))))
 
+;; JVM clojure.xml builds :content with conj onto [], so a non-empty content
+;; is a vector and an empty element has nil.
+(deftest clojure-xml-content-is-a-vector
+  (let [el (cx/parse "<a><b>hi</b><c/></a>")]
+    (is (vector? (:content el)))
+    (is (vector? (:content (first (:content el)))))
+    (is (nil? (:content (second (:content el)))))))
+
+;; SAX delivers a text run in pieces (entities, CDATA); clojure.xml joins the
+;; pieces before pushing them as one string.
+(deftest clojure-xml-joins-adjacent-text
+  (is (= ["tx<yu"] (:content (cx/parse "<d>t<![CDATA[x<y]]>u</d>"))))
+  (is (= ["a&b" {:tag :c :attrs nil :content nil}]
+         (:content (cx/parse "<a>a&amp;b<c/>  </a>")))))
+
 (defn -main [& _]
   (let [{:keys [fail error]} (run-tests 'jolt.xml-test)]
     (when (pos? (+ fail error)) (System/exit 1))))

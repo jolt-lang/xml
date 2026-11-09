@@ -4,7 +4,8 @@
   tree, so clojure.zip / clojure.data.zip code reads it exactly like clojure.xml
   on the JVM. Whitespace-only text between elements is dropped, matching the JDK
   SAX parser clojure.xml uses (it reports such runs as ignorable whitespace)."
-  (:require [jolt.xml]))
+  (:require [clojure.string :as str]
+            [jolt.xml]))
 
 (def ^:private START javax.xml.stream.XMLStreamConstants/START_ELEMENT)
 (def ^:private END   javax.xml.stream.XMLStreamConstants/END_ELEMENT)
@@ -29,23 +30,34 @@
                (transient {})
                (range n))))))
 
+(defn- push-text
+  "Adds a finished text run to the content, unless it is whitespace only (the
+  JDK SAX parser clojure.xml uses reports those as ignorable whitespace)."
+  [acc ^StringBuilder sb]
+  (let [t (str sb)]
+    (if (str/blank? t) acc (conj acc t))))
+
 (defn- parse-element
   "Reads one element (the reader is positioned on its START_ELEMENT) into a
-  {:tag :attrs :content} map, recursively."
+  {:tag :attrs :content} map, recursively. As in clojure.xml, :content is a
+  vector, or nil for an empty element, and adjacent text and CDATA pieces are
+  joined into one string."
   [rdr]
   (let [tag (keyword (.getLocalName rdr))
         a   (attrs rdr)
-        content (loop [acc []]
+        content (loop [acc [] sb nil]
                   (let [ev (.next rdr)]
                     (cond
-                      (= ev START) (recur (conj acc (parse-element rdr)))
-                      ;; keep text, but drop whitespace-only runs between elements
-                      ;; (clojure.xml's SAX parser reports them as ignorable).
-                      (= ev CHARS) (recur (if (.isWhiteSpace rdr) acc (conj acc (.getText rdr))))
-                      (= ev END)   acc
-                      (= ev EOD)   acc
-                      :else        (recur acc))))]
-    {:tag tag :attrs a :content (seq content)}))
+                      ;; jolt.xml reports CDATA as CHARACTERS too
+                      (= ev CHARS)
+                      (recur acc (doto (or sb (StringBuilder.)) (.append (.getText rdr))))
+                      (= ev START)
+                      (let [acc (if sb (push-text acc sb) acc)]
+                        (recur (conj acc (parse-element rdr)) nil))
+                      (or (= ev END) (= ev EOD))
+                      (if sb (push-text acc sb) acc)
+                      :else (recur acc sb))))]
+    {:tag tag :attrs a :content (not-empty content)}))
 
 (defn parse
   "Parses an XML source (a String, a Reader, or an org.xml.sax.InputSource) into

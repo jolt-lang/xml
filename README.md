@@ -53,7 +53,7 @@ It ships with macOS (the dyld shared cache) and is ubiquitous on Linux
 ```
 
 ```
-joltc -M:test   # run the conformance tests
+jolt -M:test   # run the conformance tests
 ```
 
 ## clojure.xml
@@ -102,5 +102,5 @@ building — no libxml2/FFI needed, so `jolt.xml` is not required.
   `&`, `<`, `>`. Attribute values escape `&`, `<`, `"`.
 
 ```sh
-joltc -M:test-data-xml   # run the data.xml conformance tests
+jolt -M:test-data-xml   # run the data.xml conformance tests
 ```
